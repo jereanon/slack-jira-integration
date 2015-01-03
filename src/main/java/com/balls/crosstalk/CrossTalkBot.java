@@ -24,6 +24,6 @@ public class CrossTalkBot implements SlackMessageHandler {
 
         SlackMessage slackMessage = (SlackMessage) slackMessagePayload;
 
-        slackConnection.sendMessageToChannel(slackMessage.getChannel(), "i herd");
+        // slackConnection.sendMessageToChannel(slackMessage.getChannel(), "i herd");
     }
 }

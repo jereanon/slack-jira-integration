@@ -11,6 +11,11 @@ public class SlackMessage extends SlackMessagePayload {
 	private String ts;
 	private String team;
 
+	@Override
+	public String getType() {
+		return "message";
+	}
+
 	public String getChannel() {
 		return channel;
 	}

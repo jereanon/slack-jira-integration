@@ -23,6 +23,7 @@ import org.java_websocket.client.DefaultSSLWebSocketClientFactory;
 import org.java_websocket.client.WebSocketClient;
 import org.java_websocket.handshake.ServerHandshake;
 
+import com.balls.slack.messages.SlackMessage;
 import com.balls.websocket.WebSocketClientHandler;
 import com.balls.slack.messages.SlackMessageHandler;
 import com.balls.slack.messages.SlackMessagePayload;
@@ -46,6 +47,7 @@ public class SlackRealTimeMessagingConnection implements WebSocketClientHandler 
 	private WebSocketClient webSocketClient;
 
 	private Set<SlackMessageHandler> slackMessageHandlers = new HashSet<SlackMessageHandler>();
+	private boolean isConnected = false;
 
 	public SlackRealTimeMessagingConnection(String connectionUrl, String username, String apiKey) {
 		this.connectionUrl = connectionUrl;
@@ -53,6 +55,11 @@ public class SlackRealTimeMessagingConnection implements WebSocketClientHandler 
 		this.apiKey = apiKey;
 	}
 
+	/**
+	 * Register a {@link SlackMessageHandler} to receive messages.
+	 *
+	 * @param handler a handler to receive messages
+	 */
 	public void registerSlackMessageHandler(SlackMessageHandler handler) {
 		slackMessageHandlers.add(handler);
 	}
@@ -77,11 +84,23 @@ public class SlackRealTimeMessagingConnection implements WebSocketClientHandler 
 
 		// create teh websocket
 		webSocketClient = createJavaWebSocketContainer(webSocketUrl);
+		webSocketClient.connect();
+	}
+
+	public void sendMessage(SlackMessage message) {
+
+		// turn the payload into a string
+		JsonNode node = objectMapper.valueToTree(message);
+		String payload = node.toString();
+
+		// send the payload and pray
+		webSocketClient.send(payload);
 	}
 
 	@Override
 	public void onOpen(ServerHandshake serverHandshake) {
 		System.out.println("OPENED");
+		isConnected = true;
 	}
 
 	@Override
@@ -100,6 +119,7 @@ public class SlackRealTimeMessagingConnection implements WebSocketClientHandler 
 	@Override
 	public void onClose(int i, String s, boolean b) {
 		System.out.println("closed: "+s);
+		isConnected = false;
 	}
 
 	@Override
@@ -107,23 +127,71 @@ public class SlackRealTimeMessagingConnection implements WebSocketClientHandler 
 		System.out.println("on error: "+e.getStackTrace());
 	}
 
-	public void sendMessageToChannel(String channel, String asUser, String messageText, String token) {
-		URI uri = null;
+	/**
+	 * Create a {@link WebSocketClient} with the given endpoint.
+	 *
+	 * @param endpoint the endpoint
+	 * @return a WebSocketClient
+	 */
+	private WebSocketClient createJavaWebSocketContainer(String endpoint) {
+
+		URI uri;
 		try {
-			uri = new URIBuilder(connectionUrl+"/api/chat.postMessage")
-					.setParameter("token", token)
-					.setParameter("channel", channel)
-					.setParameter("username", asUser)
-					.setParameter("text", messageText)
-					.build();
+			uri = new URI(endpoint);
 		} catch (URISyntaxException e) {
-			System.out.println(e); // TODO: fix
+			System.out.println("unable to create uri "+e.getStackTrace());
+			return null;
 		}
 
-		HttpPost post = new HttpPost(uri);
-		JsonNode node = executeRequestToJsonNode(post);
+		SlackRealTimeWebSocketClient wsClient = new SlackRealTimeWebSocketClient(uri);
+		wsClient.registerHandler(this);
 
-		System.out.println(node);
+		SSLContext sslContext = null;
+		try {
+			sslContext = SSLContext.getInstance("TLS");
+			sslContext.init( null, null, null );
+		} catch (NoSuchAlgorithmException e) {
+			e.printStackTrace();
+		} catch (KeyManagementException e) {
+			e.printStackTrace();
+		}
+
+		wsClient.setWebSocketFactory(new DefaultSSLWebSocketClientFactory(sslContext));
+		return wsClient;
+	}
+
+	/**
+	 * Convert a request to a json node.
+	 * @param request the request
+	 * @return the node
+	 */
+	private JsonNode executeRequestToJsonNode(HttpUriRequest request) {
+
+		// get the json data
+		JsonNode json = null;
+		String content;
+		CloseableHttpResponse response = null;
+		try {
+			response = httpClient.execute(request);
+			content = EntityUtils.toString(response.getEntity(), EXPECTED_CHARSET);
+			json = objectMapper.readTree(content);
+		} catch(IOException ioe) {
+			System.out.println("EXCEPTION: "+ioe); // TODO: fix
+		} finally {
+			try {
+				if (response!=null) {
+					response.close();
+				}
+			} catch(IOException ioe) {
+				System.out.println("EXCEPTION: "+ioe); // TODO: fix
+			}
+		}
+
+		// return it
+		if (json==null) {
+			System.out.println("no json to return, wat"); // TODO: fix
+		}
+		return json;
 	}
 
 	/**
@@ -168,68 +236,6 @@ public class SlackRealTimeMessagingConnection implements WebSocketClientHandler 
 				handler.onError(e);
 			}
 		}
-	}
-
-	private WebSocketClient createJavaWebSocketContainer(String endpoint) {
-
-		URI uri;
-		try {
-			uri = new URI(endpoint);
-		} catch (URISyntaxException e) {
-			System.out.println("unable to create uri "+e.getStackTrace());
-			return null;
-		}
-
-		SlackRealTimeWebSocketClient wsClient = new SlackRealTimeWebSocketClient(uri);
-		wsClient.registerHandler(this);
-
-		SSLContext sslContext = null;
-		try {
-			sslContext = SSLContext.getInstance("TLS");
-			sslContext.init( null, null, null );
-		} catch (NoSuchAlgorithmException e) {
-			e.printStackTrace();
-		} catch (KeyManagementException e) {
-			e.printStackTrace();
-		}
-
-		wsClient.setWebSocketFactory( new DefaultSSLWebSocketClientFactory( sslContext ) );
-		wsClient.connect();
-		return wsClient;
-	}
-
-	/**
-	 * Convert a request to a json node.
-	 * @param request the request
-	 * @return the node
-	 */
-	private JsonNode executeRequestToJsonNode(HttpUriRequest request) {
-
-		// get the json data
-		JsonNode json = null;
-		String content;
-		CloseableHttpResponse response = null;
-		try {
-			response = httpClient.execute(request);
-			content = EntityUtils.toString(response.getEntity(), EXPECTED_CHARSET);
-			json = objectMapper.readTree(content);
-		} catch(IOException ioe) {
-			System.out.println("EXCEPTION: "+ioe); // TODO: fix
-		} finally {
-			try {
-				if (response!=null) {
-					response.close();
-				}
-			} catch(IOException ioe) {
-				System.out.println("EXCEPTION: "+ioe); // TODO: fix
-			}
-		}
-
-		// return it
-		if (json==null) {
-			System.out.println("no json to return, wat"); // TODO: fix
-		}
-		return json;
 	}
 
 	public void setConnectionUrl(String connectionUrl) {

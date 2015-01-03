@@ -67,4 +67,8 @@ public class JiraRestClientManager {
 	public void setPassword(String password) {
 		this.password = password;
 	}
+
+	public String getJiraUrl() {
+		return jiraUrl;
+	}
 }
