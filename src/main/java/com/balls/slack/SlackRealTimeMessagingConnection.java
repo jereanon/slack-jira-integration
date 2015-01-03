@@ -28,6 +28,7 @@ import com.balls.websocket.WebSocketClientHandler;
 import com.balls.slack.messages.SlackMessageHandler;
 import com.balls.slack.messages.SlackMessagePayload;
 import com.fasterxml.jackson.core.JsonFactory;
+import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -110,8 +111,10 @@ public class SlackRealTimeMessagingConnection implements WebSocketClientHandler 
 			for (SlackMessageHandler handler : slackMessageHandlers) {
 				handler.onSlackMessage(payload);
 			}
-		} catch (IOException e) {
-			e.printStackTrace();
+		} catch (JsonMappingException jme) {
+			System.out.println("Unable to convert json. Possibly the type hasn't been created as a child of SlackMessagePayload? "+jme.getMessage());
+		} catch (Exception e) {
+			System.out.println("error handling slack message. "+e.getMessage());
 		}
 		System.out.println("received message "+s);
 	}
