@@ -1,0 +1,8 @@
+---
+- team: earshot
+  apiKey: balls
+  restUrl: https://hooks.slack.com/services/fat/balls
+
+- team: flipagram
+  apiKey: balls
+  restUrl: https://hooks.slack.com/services/fat/balls
