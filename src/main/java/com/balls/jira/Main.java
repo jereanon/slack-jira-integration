@@ -1,10 +1,12 @@
-package com.derp.slackbot;
+package com.balls.jira;
 
 import org.kohsuke.args4j.CmdLineException;
 import org.kohsuke.args4j.CmdLineParser;
 
-import com.derp.slackbot.jira.JiraRestClientManager;
-import com.derp.slackbot.slack.SlackRealTimeMessagingConnection;
+import com.balls.jira.CommandLineOptions;
+import com.balls.jira.JiraIntgrationBot;
+import com.balls.jira.JiraRestClientManager;
+import com.balls.slack.SlackRealTimeMessagingConnection;
 
 /**
  * Run the application.

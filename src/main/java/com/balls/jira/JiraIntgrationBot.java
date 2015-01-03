@@ -1,15 +1,15 @@
-package com.derp.slackbot;
+package com.balls.jira;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Pattern;
 
 import com.atlassian.jira.rest.client.domain.Issue;
-import com.derp.slackbot.jira.JiraRestClientManager;
-import com.derp.slackbot.slack.SlackRealTimeMessagingConnection;
-import com.derp.slackbot.slack.messages.SlackMessage;
-import com.derp.slackbot.slack.messages.SlackMessageHandler;
-import com.derp.slackbot.slack.messages.SlackMessagePayload;
+import com.balls.jira.JiraRestClientManager;
+import com.balls.slack.SlackRealTimeMessagingConnection;
+import com.balls.slack.messages.SlackMessage;
+import com.balls.slack.messages.SlackMessageHandler;
+import com.balls.slack.messages.SlackMessagePayload;
 
 /**
  * A bot that works with Jira.
@@ -57,7 +57,6 @@ public class JiraIntgrationBot implements SlackMessageHandler {
 			}
 
 			String messageText = issueKey + " " + issue.getDescription();
-			slackConnection.sendMessageToChannel(slackMessage.getChannel(), messageText);
 		}
 
 	}

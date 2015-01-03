@@ -1,4 +1,4 @@
-package com.derp.slackbot.slack;
+package com.balls.slack;
 
 /**
  * Client for accessing the Slack REST API

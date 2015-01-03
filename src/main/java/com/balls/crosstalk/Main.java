@@ -1,6 +1,6 @@
 package com.balls.crosstalk;
 
-import com.derp.slackbot.slack.SlackRealTimeMessagingConnection;
+import com.balls.slack.SlackRealTimeMessagingConnection;
 import org.yaml.snakeyaml.Yaml;
 
 import java.io.File;

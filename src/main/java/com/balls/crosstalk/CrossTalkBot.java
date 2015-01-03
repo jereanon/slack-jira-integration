@@ -1,9 +1,9 @@
 package com.balls.crosstalk;
 
-import com.derp.slackbot.slack.SlackRealTimeMessagingConnection;
-import com.derp.slackbot.slack.messages.SlackMessage;
-import com.derp.slackbot.slack.messages.SlackMessageHandler;
-import com.derp.slackbot.slack.messages.SlackMessagePayload;
+import com.balls.slack.SlackRealTimeMessagingConnection;
+import com.balls.slack.messages.SlackMessage;
+import com.balls.slack.messages.SlackMessageHandler;
+import com.balls.slack.messages.SlackMessagePayload;
 
 /**
  * The bot that relays messages between Slack companies

@@ -1,4 +1,4 @@
-package com.derp.slackbot.slack.messages;
+package com.balls.slack.messages;
 
 /**
  * Interface that defines behaviors for handling slack messages.

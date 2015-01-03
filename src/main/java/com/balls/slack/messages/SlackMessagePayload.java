@@ -1,4 +1,4 @@
-package com.derp.slackbot.slack.messages;
+package com.balls.slack.messages;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonSubTypes;

@@ -1,4 +1,4 @@
-package com.derp.slackbot;
+package com.balls.jira;
 
 import org.kohsuke.args4j.Option;
 

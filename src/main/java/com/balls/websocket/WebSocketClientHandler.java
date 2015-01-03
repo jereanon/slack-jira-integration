@@ -1,4 +1,4 @@
-package com.derp.slackbot;
+package com.balls.websocket;
 
 import org.java_websocket.handshake.ServerHandshake;
 

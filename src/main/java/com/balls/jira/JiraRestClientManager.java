@@ -1,4 +1,4 @@
-package com.derp.slackbot.jira;
+package com.balls.jira;
 
 import java.net.URI;
 import java.net.URISyntaxException;

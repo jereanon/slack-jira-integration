@@ -1,4 +1,4 @@
-package com.derp.slackbot.slack;
+package com.balls.slack;
 
 import java.io.IOException;
 import java.net.URI;
@@ -13,6 +13,7 @@ import javax.net.ssl.SSLContext;
 
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.client.utils.URIBuilder;
 import org.apache.http.impl.client.CloseableHttpClient;
@@ -22,9 +23,9 @@ import org.java_websocket.client.DefaultSSLWebSocketClientFactory;
 import org.java_websocket.client.WebSocketClient;
 import org.java_websocket.handshake.ServerHandshake;
 
-import com.derp.slackbot.WebSocketClientHandler;
-import com.derp.slackbot.slack.messages.SlackMessageHandler;
-import com.derp.slackbot.slack.messages.SlackMessagePayload;
+import com.balls.websocket.WebSocketClientHandler;
+import com.balls.slack.messages.SlackMessageHandler;
+import com.balls.slack.messages.SlackMessagePayload;
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -106,20 +107,21 @@ public class SlackRealTimeMessagingConnection implements WebSocketClientHandler 
 		System.out.println("on error: "+e.getStackTrace());
 	}
 
-	public void sendMessageToChannel(String channel, String messageText) {
+	public void sendMessageToChannel(String channel, String asUser, String messageText, String token) {
 		URI uri = null;
 		try {
 			uri = new URIBuilder(connectionUrl+"/api/chat.postMessage")
-					.setParameter("token", apiKey)
+					.setParameter("token", token)
 					.setParameter("channel", channel)
+					.setParameter("username", asUser)
 					.setParameter("text", messageText)
 					.build();
 		} catch (URISyntaxException e) {
 			System.out.println(e); // TODO: fix
 		}
 
-		HttpGet get = new HttpGet(uri);
-		JsonNode node = executeRequestToJsonNode(get);
+		HttpPost post = new HttpPost(uri);
+		JsonNode node = executeRequestToJsonNode(post);
 
 		System.out.println(node);
 	}

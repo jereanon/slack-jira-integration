@@ -1,4 +1,4 @@
-package com.derp.slackbot.slack.messages;
+package com.balls.slack.messages;
 
 /**
  * Represents a message received in a channel.
