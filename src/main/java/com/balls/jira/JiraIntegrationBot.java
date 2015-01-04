@@ -5,7 +5,6 @@ import java.util.List;
 import java.util.regex.Pattern;
 
 import com.atlassian.jira.rest.client.domain.Issue;
-import com.balls.jira.JiraRestClientManager;
 import com.balls.slack.SlackRealTimeMessagingConnection;
 import com.balls.slack.messages.SlackMessage;
 import com.balls.slack.messages.SlackMessageHandler;
@@ -14,18 +13,23 @@ import com.balls.slack.messages.SlackMessagePayload;
 /**
  * A bot that works with Jira.
  */
-public class JiraIntgrationBot implements SlackMessageHandler {
+public class JiraIntegrationBot implements SlackMessageHandler {
 
 	private final SlackRealTimeMessagingConnection slackConnection;
 	private JiraRestClientManager jiraRestClientManager;
 
 	private static final Pattern JIRA_KEY_PATTERN = Pattern.compile("[A-Z]-[0-9]");
 
-	public JiraIntgrationBot(JiraRestClientManager jiraRestClientManager, SlackRealTimeMessagingConnection slackConnection) {
+	public JiraIntegrationBot(JiraRestClientManager jiraRestClientManager, SlackRealTimeMessagingConnection slackConnection) {
 		this.jiraRestClientManager = jiraRestClientManager;
 		this.slackConnection = slackConnection;
 	}
 
+	/**
+	 * When we receive a message, query JIRA for the issue and return a response.
+	 *
+	 * @param slackMessagePayload the message payload
+	 */
 	@Override
 	public void onSlackMessage(SlackMessagePayload slackMessagePayload) {
 
@@ -56,7 +60,20 @@ public class JiraIntgrationBot implements SlackMessageHandler {
 				continue;
 			}
 
-			String messageText = issueKey + " " + issue.getDescription();
+			// create the message text
+			String linkText = this.jiraRestClientManager.getJiraUrl()+"/browse/"+issue.getKey();
+			String messageText = "issue key: "+ issueKey
+					+ " Summary: " + issue.getSummary()
+					+ " " + linkText;
+
+			// create the message
+			SlackMessage message = new SlackMessage();
+			message.setUser("JIRA_TEST");
+			message.setText(messageText);
+			message.setChannel(slackMessage.getChannel());
+
+			// fire the message
+			slackConnection.sendMessage(message);
 		}
 
 	}

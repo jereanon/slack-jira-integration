@@ -12,10 +12,11 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
 		include = JsonTypeInfo.As.PROPERTY,
 		property = "type")
 @JsonSubTypes({
-		@JsonSubTypes.Type(value = SlackMessage.class, name = "message")
+		@JsonSubTypes.Type(value = SlackMessage.class, name = "message"),
+		@JsonSubTypes.Type(value = SlackUserTyping.class, name = "user_typing")
 })
-public class SlackMessagePayload {
+public abstract class SlackMessagePayload {
 
 	@JsonProperty("type")
-	public String type;
+	public abstract String getType();
 }

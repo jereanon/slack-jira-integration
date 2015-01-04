@@ -3,9 +3,6 @@ package com.balls.jira;
 import org.kohsuke.args4j.CmdLineException;
 import org.kohsuke.args4j.CmdLineParser;
 
-import com.balls.jira.CommandLineOptions;
-import com.balls.jira.JiraIntgrationBot;
-import com.balls.jira.JiraRestClientManager;
 import com.balls.slack.SlackRealTimeMessagingConnection;
 
 /**
@@ -36,7 +33,7 @@ public class Main {
 		JiraRestClientManager jiraRestClientManager = new JiraRestClientManager(options.getJiraUrl(), options.getJiraUsername(), options.getJiraPassword());
 
 		// the bot
-		JiraIntgrationBot bot = new JiraIntgrationBot(jiraRestClientManager, connection);
+		JiraIntegrationBot bot = new JiraIntegrationBot(jiraRestClientManager, connection);
 		connection.registerSlackMessageHandler(bot);
 	}
 }

@@ -34,6 +34,7 @@ public class SlackRealTimeMessagingConnection implements WebSocketClientHandler 
 	private WebSocketClient webSocketClient;
 
 	private Set<SlackMessageHandler> slackMessageHandlers = new HashSet<SlackMessageHandler>();
+	private boolean isConnected = false;
 
 	public SlackRealTimeMessagingConnection(String connectionUrl, String username, String apiKey) {
 		this.connectionUrl = connectionUrl;
@@ -41,6 +42,11 @@ public class SlackRealTimeMessagingConnection implements WebSocketClientHandler 
 		this.apiKey = apiKey;
 	}
 
+	/**
+	 * Register a {@link SlackMessageHandler} to receive messages.
+	 *
+	 * @param handler a handler to receive messages
+	 */
 	public void registerSlackMessageHandler(SlackMessageHandler handler) {
 		slackMessageHandlers.add(handler);
 	}
@@ -65,11 +71,23 @@ public class SlackRealTimeMessagingConnection implements WebSocketClientHandler 
 
 		// create teh websocket
 		webSocketClient = createJavaWebSocketContainer(webSocketUrl);
+		webSocketClient.connect();
+	}
+
+	public void sendMessage(SlackMessage message) {
+
+		// turn the payload into a string
+		JsonNode node = objectMapper.valueToTree(message);
+		String payload = node.toString();
+
+		// send the payload and pray
+		webSocketClient.send(payload);
 	}
 
 	@Override
 	public void onOpen(ServerHandshake serverHandshake) {
 		System.out.println("OPENED");
+		isConnected = true;
 	}
 
 	@Override
@@ -79,8 +97,10 @@ public class SlackRealTimeMessagingConnection implements WebSocketClientHandler 
 			for (SlackMessageHandler handler : slackMessageHandlers) {
 				handler.onSlackMessage(payload);
 			}
-		} catch (IOException e) {
-			e.printStackTrace();
+		} catch (JsonMappingException jme) {
+			System.out.println("Unable to convert json. Possibly the type hasn't been created as a child of SlackMessagePayload? "+jme.getMessage());
+		} catch (Exception e) {
+			System.out.println("error handling slack message. "+e.getMessage());
 		}
 		System.out.println("received message "+s);
 	}
@@ -88,6 +108,7 @@ public class SlackRealTimeMessagingConnection implements WebSocketClientHandler 
 	@Override
 	public void onClose(int i, String s, boolean b) {
 		System.out.println("closed: "+s);
+		isConnected = false;
 	}
 
 	@Override
@@ -96,49 +117,11 @@ public class SlackRealTimeMessagingConnection implements WebSocketClientHandler 
 	}
 
 	/**
-	 * A WebSocketClient that uses the default java keystore for SSL.
+	 * Create a {@link WebSocketClient} with the given endpoint.
+	 *
+	 * @param endpoint the endpoint
+	 * @return a WebSocketClient
 	 */
-	private class SlackRealTimeWebSocketClient extends WebSocketClient {
-
-		private Set<WebSocketClientHandler> handlerSet = new HashSet<WebSocketClientHandler>();
-
-		public SlackRealTimeWebSocketClient(URI uri) {
-			super(uri);
-		}
-
-		public void registerHandler(WebSocketClientHandler handler) {
-			handlerSet.add(handler);
-		}
-
-		@Override
-		public void onOpen(ServerHandshake serverHandshake) {
-			for (WebSocketClientHandler handler : handlerSet) {
-				handler.onOpen(serverHandshake);
-			}
-		}
-
-		@Override
-		public void onMessage(String s) {
-			for (WebSocketClientHandler handler : handlerSet) {
-				handler.onMessage(s);
-			}
-		}
-
-		@Override
-		public void onClose(int i, String s, boolean b) {
-			for (WebSocketClientHandler handler : handlerSet) {
-				handler.onClose(i, s, b);
-			}
-		}
-
-		@Override
-		public void onError(Exception e) {
-			for (WebSocketClientHandler handler : handlerSet) {
-				handler.onError(e);
-			}
-		}
-	}
-
 	private WebSocketClient createJavaWebSocketContainer(String endpoint) {
 
 		URI uri;
@@ -162,8 +145,7 @@ public class SlackRealTimeMessagingConnection implements WebSocketClientHandler 
 			e.printStackTrace();
 		}
 
-		wsClient.setWebSocketFactory( new DefaultSSLWebSocketClientFactory( sslContext ) );
-		wsClient.connect();
+		wsClient.setWebSocketFactory(new DefaultSSLWebSocketClientFactory(sslContext));
 		return wsClient;
 	}
 
