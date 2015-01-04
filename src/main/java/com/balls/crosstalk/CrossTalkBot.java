@@ -13,6 +13,7 @@ public class CrossTalkBot implements SlackMessageHandler {
 
     public CrossTalkBot(String restUrl) {
         this.slackRestClient = new SlackRestClient(restUrl);
+        slackRestClient.sendMessage("I R ALIVE");
     }
 
     @Override

@@ -1,9 +1,11 @@
 package com.balls.slack;
 
+import com.balls.slack.messages.SlackMessage;
 import com.balls.slack.messages.SlackMessageHandler;
 import com.balls.slack.messages.SlackMessagePayload;
 import com.balls.websocket.WebSocketClientHandler;
 import com.fasterxml.jackson.core.JsonFactory;
+import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.http.client.methods.HttpGet;
@@ -13,7 +15,6 @@ import org.java_websocket.client.WebSocketClient;
 import org.java_websocket.handshake.ServerHandshake;
 
 import javax.net.ssl.SSLContext;
-import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.security.KeyManagementException;
@@ -147,6 +148,54 @@ public class SlackRealTimeMessagingConnection implements WebSocketClientHandler 
 
 		wsClient.setWebSocketFactory(new DefaultSSLWebSocketClientFactory(sslContext));
 		return wsClient;
+	}
+
+	/**
+	 * A WebSocketClient that uses the default java keystore for SSL.
+	 */
+	private class SlackRealTimeWebSocketClient extends WebSocketClient {
+
+		private Set<WebSocketClientHandler> handlerSet = new HashSet<WebSocketClientHandler>();
+
+		public SlackRealTimeWebSocketClient(URI uri) {
+			super(uri);
+		}
+
+		public void registerHandler(WebSocketClientHandler handler) {
+			handlerSet.add(handler);
+		}
+
+		@Override
+		public void onOpen(ServerHandshake serverHandshake) {
+			for (WebSocketClientHandler handler : handlerSet) {
+				handler.onOpen(serverHandshake);
+			}
+		}
+
+		@Override
+		public void onMessage(String s) {
+			for (WebSocketClientHandler handler : handlerSet) {
+				handler.onMessage(s);
+			}
+		}
+
+		@Override
+		public void onClose(int i, String s, boolean b) {
+			for (WebSocketClientHandler handler : handlerSet) {
+				handler.onClose(i, s, b);
+			}
+		}
+
+		@Override
+		public void onError(Exception e) {
+			for (WebSocketClientHandler handler : handlerSet) {
+				handler.onError(e);
+			}
+		}
+	}
+
+	public boolean isConnected() {
+		return isConnected;
 	}
 
 	public void setConnectionUrl(String connectionUrl) {
