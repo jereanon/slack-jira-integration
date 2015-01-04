@@ -1,18 +1,18 @@
 package com.balls.crosstalk;
 
-import com.balls.slack.SlackRealTimeMessagingConnection;
+import com.balls.slack.SlackRestClient;
 import com.balls.slack.messages.SlackMessage;
 import com.balls.slack.messages.SlackMessageHandler;
 import com.balls.slack.messages.SlackMessagePayload;
 
 /**
- * The bot that relays messages between Slack companies
+ * The bot that relays messages between Slack teams
  */
 public class CrossTalkBot implements SlackMessageHandler {
-    private final SlackRealTimeMessagingConnection slackConnection;
+    private final SlackRestClient slackRestClient;
 
-    public CrossTalkBot(SlackRealTimeMessagingConnection connection) {
-        this.slackConnection = connection;
+    public CrossTalkBot(String restUrl) {
+        this.slackRestClient = new SlackRestClient(restUrl);
     }
 
     @Override
@@ -23,7 +23,6 @@ public class CrossTalkBot implements SlackMessageHandler {
         }
 
         SlackMessage slackMessage = (SlackMessage) slackMessagePayload;
-
-        slackConnection.sendMessageToChannel(slackMessage.getChannel(), "i herd");
+        slackRestClient.sendMessage(slackMessage.getChannel(), slackMessage.getUser(), "i herd");
     }
 }

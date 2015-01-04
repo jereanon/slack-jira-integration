@@ -5,6 +5,7 @@ import org.yaml.snakeyaml.Yaml;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.util.List;
 import java.util.Map;
@@ -20,7 +21,7 @@ public class Main {
             InputStream input = new FileInputStream(new File("src/main/resources/config.yml"));
             Yaml yaml = new Yaml();
             config = (List<Map>) yaml.load(input);
-        } catch (Exception e) {
+        } catch (FileNotFoundException e) {
             System.err.println(e.getMessage());
             System.exit(0);
         }
@@ -32,7 +33,7 @@ public class Main {
         connection.startRealTimeClient();
 
         // Start yer engines!
-        CrossTalkBot bot = new CrossTalkBot(connection);
+        CrossTalkBot bot = new CrossTalkBot((String) config.get(0).get("restUrl"));
         connection.registerSlackMessageHandler(bot);
     }
 }
