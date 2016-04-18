@@ -27,6 +27,7 @@ import java.util.Set;
  */
 public class SlackRealTimeMessagingConnection implements WebSocketClientHandler {
 
+	private boolean stayConnected = false;
 	private String connectionUrl;
 	private String username;
 	private String apiKey;
@@ -37,10 +38,12 @@ public class SlackRealTimeMessagingConnection implements WebSocketClientHandler 
 	private Set<SlackMessageHandler> slackMessageHandlers = new HashSet<SlackMessageHandler>();
 	private boolean isConnected = false;
 
-	public SlackRealTimeMessagingConnection(String connectionUrl, String username, String apiKey) {
+	public SlackRealTimeMessagingConnection(String connectionUrl,
+			String username, String apiKey, boolean stayConnected) {
 		this.connectionUrl = connectionUrl;
 		this.username = username;
 		this.apiKey = apiKey;
+		this.stayConnected = stayConnected;
 	}
 
 	/**
@@ -99,7 +102,8 @@ public class SlackRealTimeMessagingConnection implements WebSocketClientHandler 
 				handler.onSlackMessage(payload);
 			}
 		} catch (JsonMappingException jme) {
-			System.out.println("Unable to convert json. Possibly the type hasn't been created as a child of SlackMessagePayload? "+jme.getMessage());
+			System.out.println("Unable to convert json. Possibly the type hasn't "
+					+ "been created as a child of SlackMessagePayload? "+jme.getMessage());
 		} catch (Exception e) {
 			System.out.println("error handling slack message. "+e.getMessage());
 		}
@@ -110,6 +114,9 @@ public class SlackRealTimeMessagingConnection implements WebSocketClientHandler 
 	public void onClose(int i, String s, boolean b) {
 		System.out.println("closed: "+s);
 		isConnected = false;
+		if (stayConnected) {
+			startRealTimeClient();
+		}
 	}
 
 	@Override

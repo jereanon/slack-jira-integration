@@ -26,11 +26,18 @@ public class Main {
 		}
 
 		// set all the options
-		SlackRealTimeMessagingConnection connection = new SlackRealTimeMessagingConnection(options.getSlackUrl(), "jira-integration", options.getSlackApiKey());
+		SlackRealTimeMessagingConnection connection = new SlackRealTimeMessagingConnection(
+				options.getSlackUrl(),
+				"jira-integration",
+				options.getSlackApiKey(),
+				true);
 		connection.startRealTimeClient();
 
 		// setup the jira
-		JiraRestClientManager jiraRestClientManager = new JiraRestClientManager(options.getJiraUrl(), options.getJiraUsername(), options.getJiraPassword());
+		JiraRestClientManager jiraRestClientManager = new JiraRestClientManager(
+				options.getJiraUrl(),
+				options.getJiraUsername(),
+				options.getJiraPassword());
 
 		// the bot
 		JiraIntegrationBot bot = new JiraIntegrationBot(jiraRestClientManager, connection);

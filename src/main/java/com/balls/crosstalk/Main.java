@@ -29,7 +29,11 @@ public class Main {
         String slackApiKey = (String) config.get(0).get("apiKey");
 
         // Jack in to dat Slack
-        SlackRealTimeMessagingConnection connection = new SlackRealTimeMessagingConnection(slackUrl, "crosstalk", slackApiKey);
+        SlackRealTimeMessagingConnection connection = new SlackRealTimeMessagingConnection(
+                slackUrl,
+                "crosstalk",
+                slackApiKey,
+                true);
         connection.startRealTimeClient();
 
         // Start yer engines!
